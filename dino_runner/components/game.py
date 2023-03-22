@@ -21,6 +21,9 @@ class Game:
         self.y_pos_bg = 380
         self.score = 0
         self.death_count = 0
+        self.time_to_blit = None
+        self.bg_color = (255, 255, 255)
+        self.text_color = (0, 0, 0)
 
         self.player = Dinosaur()
         self.obstacle_manager = ObstacleManager()
@@ -67,7 +70,7 @@ class Game:
 
     def draw(self):
         self.clock.tick(FPS)
-        self.screen.fill((255, 255, 255)) 
+        self.day_or_night()
         self.draw_background()
         self.player.draw(self.screen)
         self.obstacle_manager.draw(self.screen)
@@ -76,6 +79,21 @@ class Game:
         self.power_up_manager.draw(self.screen)
         pygame.display.update()
         pygame.display.flip()
+
+    def day_or_night(self):
+        if self.score % 500 == 0:
+            self.time_to_blit = pygame.time.get_ticks() + 10000
+
+        if self.time_to_blit:
+            self.text_color = (255, 255, 255)
+            self.bg_color = (0, 0, 0)
+            if pygame.time.get_ticks() >= self.time_to_blit:
+                self.time_to_blit = None
+        else:
+            self.text_color = (0, 0, 0)
+            self.bg_color = (255, 255, 255)
+
+        self.screen.fill(self.bg_color)
 
     def draw_background(self):
         image_width = BG.get_width()
@@ -90,6 +108,7 @@ class Game:
         draw_message_component(
             f"Score: {self.score}",
             self.screen,
+            font_color=self.text_color,
             pos_x_center=1000,
             pos_y_center=50
         )
@@ -101,6 +120,7 @@ class Game:
                 draw_message_component(
                     f"{self.player.type.capitalize()} enabled for {time_to_show} seconds",
                     self.screen,
+                    font_color=self.text_color,
                     font_size=18,
                     pos_x_center=500,
                     pos_y_center=40
@@ -115,25 +135,27 @@ class Game:
                 self.playing = False
                 self.running = False
             elif event.type == pygame.KEYDOWN:
-                self.run() 
+                self.run()
 
     def show_menu(self):
-        self.screen.fill((255, 255, 255))
+        self.screen.fill(self.bg_color)
         half_screen_height = SCREEN_HEIGHT // 2
         half_screen_width = SCREEN_WIDTH // 2
 
         if self.death_count == 0:
-            draw_message_component("Press any key to start", self.screen)
+            draw_message_component("Press any key to start", self.screen, font_color=self.text_color)
         else:
-            draw_message_component("Press any key to restart", self.screen, pos_y_center=half_screen_height + 140)
+            draw_message_component("Press any key to restart", self.screen, font_color=self.text_color, pos_y_center=half_screen_height + 140)
             draw_message_component(
                 f"Your Score: {self.score}",
                 self.screen,
+                font_color=self.text_color,
                 pos_y_center=half_screen_height - 150
             )          
             draw_message_component(
                 f"Death count: {self.death_count}",
                 self.screen,
+                font_color=self.text_color,
                 pos_y_center=half_screen_height - 100
             )
             self.screen.blit(ICON, (half_screen_width - 40, half_screen_height - 40))
